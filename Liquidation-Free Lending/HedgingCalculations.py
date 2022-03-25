@@ -10,7 +10,7 @@ class RMM01:
         self.v = vol
         self.t = tte
         self.k = invariant
-        self.risky = initialrisky
+        self.x = initialrisky
 
     def d1(self,x):
         return np.log(x/self.K)/(self.v*np.sqrt(self.t))+0.5*self.v*np.sqrt(self.t)
