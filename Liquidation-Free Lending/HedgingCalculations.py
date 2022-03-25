@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 # Config
 # Defining The CFMM and Options
 class RMM01:
-    def __init__(self,strike,vol,tte,invariant):
+    def __init__(self,strike,vol,tte,invariant,initialrisky):
         self.K = strike
         self.v = vol
         self.t = tte
         self.k = invariant
+        self.risky = initialrisky
 
     def d1(self,x):
         return np.log(x/self.K)/(self.v*np.sqrt(self.t))+0.5*self.v*np.sqrt(self.t)
