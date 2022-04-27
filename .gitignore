@@ -5,3 +5,4 @@ rmms-py/optimization_results
 .idea/misc.xml
 *.xml
 .idea/rmm-research.iml
+.idea
