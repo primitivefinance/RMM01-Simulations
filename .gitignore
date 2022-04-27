@@ -1,8 +1,5 @@
 __pycache__/
 rmms-py/sim_results
 rmms-py/optimization_results
-.idea/inspectionProfiles/profiles_settings.xml
-.idea/misc.xml
 *.xml
-.idea/rmm-research.iml
 .idea
