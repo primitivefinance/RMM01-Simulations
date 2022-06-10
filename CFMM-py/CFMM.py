@@ -3,11 +3,11 @@ from scipy.stats import norm
 from utils import nonnegative
 
 class CFMM:
-    def __init__(self, x, y, xbound, ybound, fee):
+    def __init__(self, x, y, xbounds, ybounds, fee):
         self.x = x
         self.y = y
-        self.xbound = xbound
-        self.ybound = ybound
+        self.xbounds = xbounds
+        self.ybounds = ybounds
         self.gamma = 1 - fee
 
 
@@ -22,43 +22,36 @@ class UniV2(CFMM):
     def swapXforY(self, deltax):
         assert nonnegative(deltax)
         deltay = self.y - self.TradingFunction()/(self.x + self.gamma * deltax)
+        assert nonnegative(deltay)
         self.x += deltax
         self.y -= deltay
-        assert nonnegative(self.y)
         effective_price = deltay/deltax
         return deltay, effective_price
 
     def swapYforX(self, deltay):
         assert nonnegative(deltay)
         deltax = self.x - self.TradingFunction()/(self.y + self.gamma * deltay)
+        assert nonnegative(deltax)
         self.y += deltay
         self.x -= deltax
-        assert nonnegative(deltax)
         effective_price = deltay/deltax
         return deltax, effective_price
 
-    def marginalPriceAfterXTrade(self, deltax):
+    def getMarginalPriceAfterXTrade(self, deltax, numeraire):
         assert nonnegative(deltax)
-        self.y -= self.y - self.TradingFunction()/(self.x + self.gamma * deltax)
-        self.x += deltax
-        assert nonnegative(self.y)
-        Sy = self.TradingFunction()/(self.x**2)
-        Sx = self.TradingFunction()/(self.y**2)
-        return Sy, Sx
+        assert numeraire == 'y' or numeraire == 'x'
+        if numeraire == 'y':
+            return self.gamma*self.TradingFunction()/(self.x + self.gamma*deltax)**2
+        elif numeraire == 'x':
+            return 1/self.gamma*self.TradingFunction()/(self.x + self.gamma*deltax)**2
 
-    def marginalPriceAfterYTrade(self, deltay):
+    def getMarginalPriceAfterYTrade(self, deltay, numeraire):
         assert nonnegative(deltay)
-        self.x -= self.x - self.TradingFunction() / (self.y + self.gamma * deltay)
-        self.y += deltay
-        assert nonnegative(self.x)
-        Sy = self.TradingFunction() / (self.x ** 2)
-        Sx = self.TradingFunction() / (self.y ** 2)
-        return Sy, Sx
-
-    def getSpot(self):
-        Sy = self.TradingFunction() / (self.x ** 2)
-        Sx = self.TradingFunction() / (self.y ** 2)
-        return Sy, Sx
+        assert numeraire == 'y' or numeraire == 'x'
+        if numeraire == 'y':
+            return 1/self.gamma*self.TradingFunction()/(self.y + self.gamma*deltay)**2
+        elif numeraire == 'x':
+            return self.gamma*self.TradingFunction()/(self.y + self.gamma*deltay)**2
 
     def InverseG(self, m):
         '''
