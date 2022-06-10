@@ -3,3 +3,4 @@ rmms-py/sim_results
 rmms-py/optimization_results
 *.xml
 .idea
+.DS_Store
