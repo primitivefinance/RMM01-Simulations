@@ -4,7 +4,7 @@ from visualize import visualize
 
 
 def main():
-    users = get_data("KKRW7D1SQKAG2KNEBZA4XNR68H9MWYNMIB")
+    users = get_data("")
     graph = build_graph(users.head())
     visualize(graph)
 
