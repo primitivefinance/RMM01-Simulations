@@ -49,23 +49,33 @@ class UniV2(CFMM):
         assert nonnegative(deltay)
         assert numeraire == 'y' or numeraire == 'x'
         if numeraire == 'y':
-            return 1/self.gamma*self.TradingFunction()/(self.y + self.gamma*deltay)**2
+            return 1/(self.gamma*self.TradingFunction()/(self.y + self.gamma*deltay)**2)
         elif numeraire == 'x':
             return self.gamma*self.TradingFunction()/(self.y + self.gamma*deltay)**2
 
-    def InverseG(self, m):
+    def findArbitrageAmountYIn(self, m):
         '''
-        Needs to be checked, can share the derivation with you. Pricing done wrt y.
-        Basically took -dy/dx with updated reserves and inversed it for delta
+        Given a reference price denominated in y, find the amount of y to swap in
+        in order to align the price of the pool with the reference market.
         '''
-        if m >> self.getSpot()[0]:
-            ## Swap In Y
-            deltay = np.sqrt(self.TradingFunction()*m) - self.y
-            return deltay
-        elif m << self.getSpot()[0]:
-            ## Swap In X
-            deltax = self.x - np.sqrt(self.TradingFunction()/m)
-            return deltax
+        assert m > self.getMarginalPriceAfterYTrade(0, "y")
+        def inverseG(price):
+            return np.sqrt(self.TradingFunction()/price) - self.y
+        # print("inverG", inverseG(1/m))
+        # For this inverG formula, the target price must be in x.y-1
+        m = 1/m
+        return (1/self.gamma)*inverseG(m/self.gamma)
+
+    def findArbitrageAmountXIn(self, m):
+        '''
+        Given a reference price denominated in y, find the amount of x to swap in
+        in order to align the price of the pool with the reference market.
+        '''
+        assert m < self.getMarginalPriceAfterXTrade(0, "y")
+        def inverseG(price):
+            return np.sqrt(self.TradingFunction()/price) - self.x
+        print("inverG", inverseG(m))
+        return (1/self.gamma)*inverseG(m/self.gamma)
 
 
     class RMM01(CFMM):
