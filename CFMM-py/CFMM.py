@@ -155,7 +155,18 @@ class UniV2(CFMM):
         def findArbitrageAmountYIn(self, m):
             '''
             '''
+            assert m > self.getMarginalPriceAfterYTrade(0, 'y')
+            tau = self.T - self.env.now*self.timescale
+            def inverseG(ref_price):
+                return self.TradingFunction() - self.y + self.K*norm.cdf(np.log(self.K*ref_price)/(self.vol*tau) + 0.5*self.vol*np.sqrt(tau))
+            return (1/self.gamma)*inverseG((1/self.gamma)*m)
+
         
         def findArbitrageAmountXIn(self, m):
             '''
             '''
+            assert m < self.getMarginalPriceAfterXTrade(0, 'y')
+            tau = self.T - self.env.now*self.timescale
+            def inverseG(ref_price):
+                return self.x - 1 + norm.cdf(-np.log(ref_price/self.K)/(self.vol*np.sqrt(tau)) - 0.5*self.vol*np.sqrt(tau))
+            return (1/self.gamma)*inverseG((1/self.gamma)*m)
