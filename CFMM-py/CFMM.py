@@ -79,94 +79,94 @@ class UniV2(CFMM):
         return (1/self.gamma)*inverseG(m/self.gamma)
 
 
-    class RMM01(CFMM):
-        def __init__(self, x, y, fee, strike, vol, duration, env, timescale):
-            super().__init__(x, y, 1, np.inf, fee)
-            self.K = strike
-            self.vol= vol
-            self.T = duration
-            self.env = env
-            self.timescale = timescale
+class RMM01(CFMM):
+    def __init__(self, x, y, fee, strike, vol, duration, env, timescale):
+        super().__init__(x, y, 1, np.inf, fee)
+        self.K = strike
+        self.vol= vol
+        self.T = duration
+        self.env = env
+        self.timescale = timescale
 
-        def TradingFunction(self):
-            tau = self.T - self.timescale*self.env.now
-            k = self.y - self.K*norm.cdf(norm.ppf(1-self.x)-self.vol*np.sqrt(tau))
-            return k
-        
-        def swapXforY(self, deltax, numeraire):
-            '''
-            '''
-            assert nonnegative(deltax)
-            tau = self.T - self.timescale*self.env.now
-            new_y_reserves = self.TradingFunction() + self.K * norm.cdf(norm.ppf(1 - (self.x + self.gamma*deltax)) - self.vol * np.sqrt(tau))
-            deltay = self.y - new_y_reserves
-            assert nonnegative(deltax)
-            self.y = new_y_reserves
-            self.x += deltax 
-            if numeraire == 'y': 
-                effective_price = deltay/deltax
-            elif numeraire == 'x':
-                effective_price = deltax/deltay
+    def TradingFunction(self):
+        tau = self.T - self.timescale*self.env.now
+        k = self.y - self.K*norm.cdf(norm.ppf(1-self.x)-self.vol*np.sqrt(tau))
+        return k
+    
+    def swapXforY(self, deltax, numeraire):
+        '''
+        '''
+        assert nonnegative(deltax)
+        tau = self.T - self.timescale*self.env.now
+        new_y_reserves = self.TradingFunction() + self.K * norm.cdf(norm.ppf(1 - (self.x + self.gamma*deltax)) - self.vol * np.sqrt(tau))
+        deltay = self.y - new_y_reserves
+        assert nonnegative(deltax)
+        self.y = new_y_reserves
+        self.x += deltax 
+        if numeraire == 'y': 
+            effective_price = deltay/deltax
+        elif numeraire == 'x':
+            effective_price = deltax/deltay
 
-            return deltay, effective_price
-
-
-
-        def swapYforX(self, deltay, numeraire):
-            '''
-            '''
-            assert nonnegative(deltay)
-            tau = self.T - self.timescale*self.env.now
-            new_x_reserves = 1 - norm.cdf(norm.ppf(((self.y + self.gamma*deltay) - self.TradingFunction()) / self.K) + self.vol * np.sqrt(tau))
-            deltax = self.x - new_x_reserves
-            assert nonnegative(deltax)
-            self.x = new_x_reserves
-            self.y += deltay 
-            if numeraire == 'y':
-                effective_price = deltay/deltax 
-            if numeraire == 'x':
-                effective_price = deltax/deltay 
-            return deltax, effective_price
+        return deltay, effective_price
 
 
 
-        def getMarginalPriceAfterXTrade(self, deltax, numeraire):
-            '''
-            '''
-            tau = self.T - self.timescale*self.env.now
-            def g(delta):
-                return self.K*np.exp(norm.ppf(1 - self.x - deltax)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
-            if numeraire == 'y':
-                return self.gamma*g(self.gamma*deltax)
-            elif numeraire == 'x':
-                return 1/(self.gamma*g(self.gamma*deltax))
+    def swapYforX(self, deltay, numeraire):
+        '''
+        '''
+        assert nonnegative(deltay)
+        tau = self.T - self.timescale*self.env.now
+        new_x_reserves = 1 - norm.cdf(norm.ppf(((self.y + self.gamma*deltay) - self.TradingFunction()) / self.K) + self.vol * np.sqrt(tau))
+        deltax = self.x - new_x_reserves
+        assert nonnegative(deltax)
+        self.x = new_x_reserves
+        self.y += deltay 
+        if numeraire == 'y':
+            effective_price = deltay/deltax 
+        if numeraire == 'x':
+            effective_price = deltax/deltay 
+        return deltax, effective_price
 
-        def getMarginalPriceAfterYTrade(self, deltay, numeraire):
-            '''
-            '''
-            tau = self.T - self.timescale*self.env.now
-            def g(delta):
-                return (1/self.K)*np.exp(-norm.ppf((self.y + delta - self.TradingFunction())/self.K)*self.vol*np.sqrt(tau))*np.exp(0.5*tau*self.vol**2)
-            if numeraire == 'x':
-                return self.gamma*g(self.gamma*deltay)
-            elif numeraire == 'y':
-                return 1/(self.gamma*g(self.gamma*deltay))
 
-        def findArbitrageAmountYIn(self, m):
-            '''
-            '''
-            assert m > self.getMarginalPriceAfterYTrade(0, 'y')
-            tau = self.T - self.env.now*self.timescale
-            def inverseG(ref_price):
-                return self.TradingFunction() - self.y + self.K*norm.cdf(np.log(self.K*ref_price)/(self.vol*tau) + 0.5*self.vol*np.sqrt(tau))
-            return (1/self.gamma)*inverseG((1/self.gamma)*m)
 
-        
-        def findArbitrageAmountXIn(self, m):
-            '''
-            '''
-            assert m < self.getMarginalPriceAfterXTrade(0, 'y')
-            tau = self.T - self.env.now*self.timescale
-            def inverseG(ref_price):
-                return self.x - 1 + norm.cdf(-np.log(ref_price/self.K)/(self.vol*np.sqrt(tau)) - 0.5*self.vol*np.sqrt(tau))
-            return (1/self.gamma)*inverseG((1/self.gamma)*m)
+    def getMarginalPriceAfterXTrade(self, deltax, numeraire):
+        '''
+        '''
+        tau = self.T - self.timescale*self.env.now
+        def g(delta):
+            return self.K*np.exp(norm.ppf(1 - self.x - deltax)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
+        if numeraire == 'y':
+            return self.gamma*g(self.gamma*deltax)
+        elif numeraire == 'x':
+            return 1/(self.gamma*g(self.gamma*deltax))
+
+    def getMarginalPriceAfterYTrade(self, deltay, numeraire):
+        '''
+        '''
+        tau = self.T - self.timescale*self.env.now
+        def g(delta):
+            return (1/self.K)*np.exp(-norm.ppf((self.y + delta - self.TradingFunction())/self.K)*self.vol*np.sqrt(tau))*np.exp(0.5*tau*self.vol**2)
+        if numeraire == 'x':
+            return self.gamma*g(self.gamma*deltay)
+        elif numeraire == 'y':
+            return 1/(self.gamma*g(self.gamma*deltay))
+
+    def findArbitrageAmountYIn(self, m):
+        '''
+        '''
+        assert m > self.getMarginalPriceAfterYTrade(0, 'y')
+        tau = self.T - self.env.now*self.timescale
+        def inverseG(ref_price):
+            return self.TradingFunction() - self.y + self.K*norm.cdf(np.log(self.K*ref_price)/(self.vol*tau) + 0.5*self.vol*np.sqrt(tau))
+        return (1/self.gamma)*inverseG((1/self.gamma)*m)
+
+    
+    def findArbitrageAmountXIn(self, m):
+        '''
+        '''
+        assert m < self.getMarginalPriceAfterXTrade(0, 'y')
+        tau = self.T - self.env.now*self.timescale
+        def inverseG(ref_price):
+            return self.x - 1 + norm.cdf(-np.log(ref_price/self.K)/(self.vol*np.sqrt(tau)) - 0.5*self.vol*np.sqrt(tau))
+        return (1/self.gamma)*inverseG((1/self.gamma)*m)
