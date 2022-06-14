@@ -1,3 +1,4 @@
+from bdb import effective
 import numpy as np
 from scipy.stats import norm
 from utils import nonnegative
@@ -43,7 +44,7 @@ class UniV2(CFMM):
         if numeraire == 'y':
             return self.gamma*self.TradingFunction()/(self.x + self.gamma*deltax)**2
         elif numeraire == 'x':
-            return 1/self.gamma*self.TradingFunction()/(self.x + self.gamma*deltax)**2
+            return 1/(self.gamma*self.TradingFunction()/(self.x + self.gamma*deltax)**2)
 
     def getMarginalPriceAfterYTrade(self, deltay, numeraire):
         assert nonnegative(deltay)
@@ -74,7 +75,7 @@ class UniV2(CFMM):
         assert m < self.getMarginalPriceAfterXTrade(0, "y")
         def inverseG(price):
             return np.sqrt(self.TradingFunction()/price) - self.x
-        print("inverG", inverseG(m))
+        # print("inverseG", inverseG(m))
         return (1/self.gamma)*inverseG(m/self.gamma)
 
 
@@ -82,12 +83,79 @@ class UniV2(CFMM):
         def __init__(self, x, y, fee, strike, vol, duration, env, timescale):
             super().__init__(x, y, 1, np.inf, fee)
             self.K = strike
-            self.v = vol
+            self.vol= vol
             self.T = duration
             self.env = env
-            self.timescale
+            self.timescale = timescale
 
         def TradingFunction(self):
             tau = self.T - self.timescale*self.env.now
-            k = self.y - self.K*norm.cdf(norm.ppf(1-self.x)-self.v*np.sqrt(tau))
+            k = self.y - self.K*norm.cdf(norm.ppf(1-self.x)-self.vol*np.sqrt(tau))
             return k
+        
+        def swapXforY(self, deltax, numeraire):
+            '''
+            '''
+            assert nonnegative(deltax)
+            tau = self.T - self.timescale*self.env.now
+            new_y_reserves = self.TradingFunction() + self.K * norm.cdf(norm.ppf(1 - (self.x + self.gamma*deltax)) - self.vol * np.sqrt(tau))
+            deltay = self.y - new_y_reserves
+            assert nonnegative(deltax)
+            self.y = new_y_reserves
+            self.x += deltax 
+            if numeraire == 'y': 
+                effective_price = deltay/deltax
+            elif numeraire == 'x':
+                effective_price = deltax/deltay
+
+            return deltay, effective_price
+
+
+
+        def swapYforX(self, deltay, numeraire):
+            '''
+            '''
+            assert nonnegative(deltay)
+            tau = self.T - self.timescale*self.env.now
+            new_x_reserves = 1 - norm.cdf(norm.ppf(((self.y + self.gamma*deltay) - self.TradingFunction()) / self.K) + self.vol * np.sqrt(tau))
+            deltax = self.x - new_x_reserves
+            assert nonnegative(deltax)
+            self.x = new_x_reserves
+            self.y += deltay 
+            if numeraire == 'y':
+                effective_price = deltay/deltax 
+            if numeraire == 'x':
+                effective_price = deltax/deltay 
+            return deltax, effective_price
+
+
+
+        def getMarginalPriceAfterXTrade(self, deltax, numeraire):
+            '''
+            '''
+            tau = self.T - self.timescale*self.env.now
+            def g(delta):
+                return self.K*np.exp(norm.ppf(1 - self.x - deltax)*np.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
+            if numeraire == 'y':
+                return self.gamma*g(self.gamma*deltax)
+            elif numeraire == 'x':
+                return 1/(self.gamma*g(self.gamma*deltax))
+
+        def getMarginalPriceAfterYTrade(self, deltay, numeraire):
+            '''
+            '''
+            tau = self.T - self.timescale*self.env.now
+            def g(delta):
+                return (1/self.K)*np.exp(-norm.ppf((self.y + delta - self.TradingFunction())/self.K)*np.vol*np.sqrt(tau))*np.exp(0.5*tau*np.vol**2)
+            if numeraire == 'x':
+                return self.gamma*g(self.gamma*deltay)
+            elif numeraire == 'y':
+                return 1/(self.gamma*g(self.gamma*deltay))
+
+        def findArbitrageAmountYIn(self, m):
+            '''
+            '''
+        
+        def findArbitrageAmountXIn(self, m):
+            '''
+            '''
