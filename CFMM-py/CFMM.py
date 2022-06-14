@@ -146,7 +146,7 @@ class RMM01(CFMM):
         '''
         tau = self.T - self.timescale*self.env.now
         def g(delta):
-            return (1/self.K)*np.exp(-norm.ppf((self.y + delta - self.TradingFunction())/self.K)*self.vol*np.sqrt(tau))*np.exp(0.5*tau*self.vol**2)
+            return (1/self.K)*np.exp(-norm.ppf((self.y + delta - self.TradingFunction())/self.K)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
         if numeraire == 'x':
             return self.gamma*g(self.gamma*deltay)
         elif numeraire == 'y':
