@@ -158,7 +158,8 @@ class RMM01(CFMM):
         assert m > self.getMarginalPriceAfterYTrade(0, 'y')
         tau = self.T - self.env.now*self.timescale
         def inverseG(ref_price):
-            return self.TradingFunction() - self.y + self.K*norm.cdf(np.log(self.K*ref_price)/(self.vol*tau) + 0.5*self.vol*np.sqrt(tau))
+            return self.TradingFunction() - self.y + self.K*norm.cdf(-np.log(self.K*ref_price)/(self.vol*np.sqrt(tau)) - 0.5*self.vol*np.sqrt(tau))
+        m = 1/m
         return (1/self.gamma)*inverseG((1/self.gamma)*m)
 
     
