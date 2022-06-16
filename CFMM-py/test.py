@@ -1,3 +1,4 @@
+import rlcompleter
 from CFMM import UniV2, RMM01
 from scipy.stats import norm
 import numpy as np
@@ -140,19 +141,19 @@ if False:
     print("gamma*g(gamma*delta) = ", gamma*initial_k/((initial_y + delta_y)**2))
     print("after trade: gamma*g(0) = ", gamma*new_k/(new_y**2))
 
-if True:
+if False:
 
     K = 1500
     sigma = 0.8
     maturity = 1
-    fee = 0.04
+    fee = 0
     initial_x = 0.5
     initial_y = K*norm.cdf(norm.ppf(1-initial_x) - sigma*np.sqrt(maturity))
     timescale = 1
     # print("Initial x: ", initial_x)
     # print("Initial y: ", initial_y)
 
-    rmm01Pool = RMM01(initial_x, initial_y, fee, K, sigma, maturity, env, timescale)
+    rmm01Pool = RMM01(initial_x, initial_y, fee, K, sigma, maturity, env, timescale, 1)
 
     print("\n ----- Test RMM01-----\n")
 
@@ -215,3 +216,87 @@ if True:
     # amount_in = 100
     # print("Expected: ", amount_in/(initial_x - (1- norm.cdf(norm.ppf((initial_y + (gamma*amount_in))/K) + sigma*np.sqrt(maturity)))))
     # print("Actual: ", rmm01Pool.getEffectivePriceAfterYTrade(amount_in, "y"))
+
+# More than one LP share implementation
+
+if True:
+
+
+    K = 1500
+    sigma = 0.8
+    maturity = 1
+    fee = 0
+    initial_x = 0.5
+    initial_y = K*norm.cdf(norm.ppf(1-initial_x) - sigma*np.sqrt(maturity))
+    timescale = 1
+    # print("Initial x: ", initial_x)
+    # print("Initial y: ", initial_y)
+
+    n_shares = 10
+
+    rmm01Pool = RMM01(initial_x, initial_y, fee, K, sigma, maturity, env, timescale, n_shares)
+
+    print("x reserves after: ", rmm01Pool.x)
+    print("y reserves after: ", rmm01Pool.y)
+    x, y = rmm01Pool.addLiquidity(1)
+    x, y = rmm01Pool.removeLiquidity(1)
+    print("x reserves after: ", rmm01Pool.x)
+    print("y reserves after: ", rmm01Pool.y)
+
+    # print("\n ----- Test RMM01-----\n")
+
+    # print("\n ----- Fee = 0 case : -----\n")
+
+    # gamma = 1 - fee
+
+    # print("\n----- Swap Amount X In ----- \n")
+    # amount_in = 0.1*n_shares
+    # expected_amount_out = initial_y - K*norm.cdf(norm.ppf(1-(initial_x+gamma*rmm01Pool.scaleDown(amount_in))) - sigma*np.sqrt(maturity))
+    # expected_amount_out = rmm01Pool.scaleUp(expected_amount_out)
+    # print("Expected: ", expected_amount_out)
+    # print("Actual: ", rmm01Pool.swapXforY(amount_in, "y")[0])
+
+    # rmm01Pool.x = initial_x
+    # rmm01Pool.y = initial_y
+
+    # print("\n----- Swap Amount Y In ----- \n")
+    # amount_in = 100*n_shares
+    # expected_amount_out = initial_x - (1 - norm.cdf(norm.ppf((initial_y+gamma*rmm01Pool.scaleDown(amount_in) - 0)/K) + sigma*np.sqrt(maturity)))
+    # expected_amount_out = rmm01Pool.scaleUp(expected_amount_out)
+    # print("Expected: ", expected_amount_out)
+    # print("Actual: ", rmm01Pool.swapYforX(amount_in, "y")[0])
+
+    # rmm01Pool.x = initial_x
+    # rmm01Pool.y = initial_y
+
+    # print("\n----- X -> Y Spot price  ----- \n")
+
+    # print("Expected with 0 fees: ", K*norm.pdf(norm.ppf(1 - initial_x) - sigma*np.sqrt(maturity))*quantilePrime(1-initial_x))
+    # print("Actual: ", rmm01Pool.getMarginalPriceAfterXTrade(0, "y"))
+
+    # print("\n----- Y -> X Spot price  ----- \n")
+    # print("Expected with 0 fees: ", K*norm.pdf(norm.ppf(1 - initial_x) - sigma*np.sqrt(maturity))*quantilePrime(1-initial_x))
+    # print("Actual: ", rmm01Pool.getMarginalPriceAfterYTrade(0, "y"))
+
+
+    # print("\n----- Arbitrage testing  ----- \n")
+
+    # # Reference market price above price of pool
+    # m = 1300
+    # print("Reference price: ", m)
+    # print("Initial pool price in y: ", rmm01Pool.getMarginalPriceAfterYTrade(0, "y"))
+    # arbitrage_amount = rmm01Pool.findArbitrageAmountYIn(m)
+    # rmm01Pool.swapYforX(arbitrage_amount, "y")
+    # print("scaled down arbitrage amount: ", rmm01Pool.scaleDown(arbitrage_amount))
+    # print("No-arbitrage bounds: ", rmm01Pool.getMarginalPriceAfterXTrade(0, "y"), " | ", rmm01Pool.getMarginalPriceAfterYTrade(0, "y"), "\n"  )
+
+    # # Reference market below price of pool
+    # rmm01Pool.x = initial_x
+    # rmm01Pool.y = initial_y
+    # m = 900
+    # print("Reference price: ", m)
+    # print("Initial pool price in y: ", rmm01Pool.getMarginalPriceAfterXTrade(0, "y"))
+    # arbitrage_amount = rmm01Pool.findArbitrageAmountXIn(m)
+    # rmm01Pool.swapXforY(arbitrage_amount, "y")
+    # print("scaled down arbitrage amount: ", rmm01Pool.scaleDown(arbitrage_amount))
+    # print("No-arbitrage bounds after trade: ", rmm01Pool.getMarginalPriceAfterXTrade(0, "y"), " | ", rmm01Pool.getMarginalPriceAfterYTrade(0, "y")  )
