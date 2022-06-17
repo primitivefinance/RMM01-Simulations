@@ -130,6 +130,27 @@ class RMM01(CFMM):
 
         return deltay, effective_price
 
+    def virtualSwapXforY(self, deltax, numeraire):
+        '''
+        '''
+        assert nonnegative(deltax)
+        initial_x, initial_y = self.x, self.y
+        tau = self.T - self.timescale*self.env.now
+        # Normalize delta x to 1 unit
+        new_y_reserves = self.TradingFunction() + self.K * norm.cdf(norm.ppf(1 - (self.x + self.gamma*self.scaleDown(deltax))) - self.vol * np.sqrt(tau))
+        deltaynorm = self.y - new_y_reserves
+        deltay = self.scaleUp(deltaynorm)
+        assert nonnegative(deltay)
+        self.y = new_y_reserves
+        self.x += self.scaleDown(deltax)
+        if numeraire == 'y': 
+            effective_price = deltay/deltax
+        elif numeraire == 'x':
+            effective_price = deltax/deltay
+        self.x = initial_x
+        self.y = initial_y
+
+        return deltay, effective_price
 
 
     def swapYforX(self, deltay, numeraire):
@@ -147,6 +168,26 @@ class RMM01(CFMM):
             effective_price = deltay/deltax 
         if numeraire == 'x':
             effective_price = deltax/deltay 
+        return deltax, effective_price
+
+    def virtualSwapYforX(self, deltay, numeraire):
+        '''
+        '''
+        assert nonnegative(deltay)
+        initial_x, initial_y = self.x, self.y
+        tau = self.T - self.timescale*self.env.now
+        new_x_reserves = 1 - norm.cdf(norm.ppf(((self.y + self.gamma*self.scaleDown(deltay)) - self.TradingFunction()) / self.K) + self.vol * np.sqrt(tau))
+        deltaxnorm = self.x - new_x_reserves
+        deltax = self.scaleUp(deltaxnorm)
+        assert nonnegative(deltax)
+        self.x = new_x_reserves
+        self.y += self.scaleDown(deltay)
+        if numeraire == 'y':
+            effective_price = deltay/deltax 
+        if numeraire == 'x':
+            effective_price = deltax/deltay 
+        self.x = initial_x 
+        self.y = initial_y
         return deltax, effective_price
 
 
