@@ -21,6 +21,13 @@ class UniV2(CFMM):
         return k
 
     def swapXforY(self, deltax):
+        '''
+        Perform swap calculation from asset X to asset Y and updating the reserves accordingly
+        
+        returns:
+        deltay          - Amount of Y asset out
+        effective_price - Price the swap was recieved at denominated in Y
+        '''
         assert nonnegative(deltax)
         deltay = self.y - self.TradingFunction()/(self.x + self.gamma * deltax)
         assert nonnegative(deltay)
@@ -29,7 +36,39 @@ class UniV2(CFMM):
         effective_price = deltay/deltax
         return deltay, effective_price
 
+    def virtualSwapXforY(self, deltax, numeraire):
+        '''
+        Perform swap calculation from asset X to asset Y without actually swapping on the AMM (no reserves are updated)
+        
+        returns:
+        deltay          - Amount of Y asset out
+        effective_price - Price the swap was recieved at denominated in numeraire of choice
+        '''
+        assert nonnegative(deltax)
+        initial_x, initial_y = self.x, self.y
+        # Normalize delta x to 1 unit
+        new_y_reserves = self.TradingFunction()/(self.x + self.gamma * deltax)
+        deltay = self.y - new_y_reserves
+        assert nonnegative(deltay)
+        self.y = new_y_reserves
+        self.x += deltax
+        if numeraire == 'y': 
+            effective_price = deltay/deltax
+        elif numeraire == 'x':
+            effective_price = deltax/deltay
+        self.x = initial_x
+        self.y = initial_y
+
+        return deltay, effective_price
+    
     def swapYforX(self, deltay):
+        '''
+        Perform swap calculation from asset Y to asset X and updating the reserves accordingly
+        
+        returns:
+        deltax          - Amount of X asset out
+        effective_price - Price the swap was recieved at denominated in Y
+        '''
         assert nonnegative(deltay)
         deltax = self.x - self.TradingFunction()/(self.y + self.gamma * deltay)
         assert nonnegative(deltax)
@@ -37,8 +76,37 @@ class UniV2(CFMM):
         self.x -= deltax
         effective_price = deltay/deltax
         return deltax, effective_price
+    
+    def virtualSwapYforX(self, deltay, numeraire):
+        '''
+        Perform swap calculation from asset Y to asset X without actually swapping on the AMM (no reserves are updated)
+        
+        returns:
+        deltax          - Amount of X asset out
+        effective_price - Price the swap was recieved at denominated in numeraire of choice
+        '''
+        assert nonnegative(deltay)
+        initial_x, initial_y = self.x, self.y
+        new_x_reserves = self.TradingFunction()/(self.y + self.gamma * deltay)
+        deltax = self.x - new_x_reserves
+        assert nonnegative(deltax)
+        self.x = new_x_reserves
+        self.y += deltay
+        if numeraire == 'y':
+            effective_price = deltay/deltax 
+        if numeraire == 'x':
+            effective_price = deltax/deltay 
+        self.x = initial_x 
+        self.y = initial_y
+        return deltax, effective_price
 
     def getMarginalPriceAfterXTrade(self, deltax, numeraire):
+        '''
+        Calculate the pool spot price after a trade from asset X to Y of size deltax
+        
+        returns:
+        Spot price after trade denominated in numeraire of choice
+        '''
         assert nonnegative(deltax)
         assert numeraire == 'y' or numeraire == 'x'
         if numeraire == 'y':
@@ -47,6 +115,12 @@ class UniV2(CFMM):
             return 1/(self.gamma*self.TradingFunction()/(self.x + self.gamma*deltax)**2)
 
     def getMarginalPriceAfterYTrade(self, deltay, numeraire):
+        '''
+        Calculate the pool spot price after a trade from asset Y to X of size deltay
+        
+        returns:
+        Spot price after trade denominated in numeraire of choice
+        '''
         assert nonnegative(deltay)
         assert numeraire == 'y' or numeraire == 'x'
         if numeraire == 'y':
@@ -113,6 +187,11 @@ class RMM01(CFMM):
     
     def swapXforY(self, deltax, numeraire):
         '''
+        Perform swap calculation from asset X to asset Y and updating the reserves accordingly
+        
+        returns:
+        deltay          - Amount of Y asset out
+        effective_price - Price the swap was recieved at denominated in numeraire of choice
         '''
         assert nonnegative(deltax)
         tau = self.T - self.timescale*self.env.now
@@ -132,6 +211,11 @@ class RMM01(CFMM):
 
     def virtualSwapXforY(self, deltax, numeraire):
         '''
+        Perform swap calculation from asset X to asset Y without actually swapping on the AMM (no reserves are updated)
+        
+        returns:
+        deltay          - Amount of Y asset out
+        effective_price - Price the swap was recieved at denominated in numeraire of choice
         '''
         assert nonnegative(deltax)
         initial_x, initial_y = self.x, self.y
@@ -155,6 +239,11 @@ class RMM01(CFMM):
 
     def swapYforX(self, deltay, numeraire):
         '''
+        Perform swap calculation from asset Y to asset X and updating the reserves accordingly
+        
+        returns:
+        deltax          - Amount of X asset out
+        effective_price - Price the swap was recieved at denominated in numeraire of choice
         '''
         assert nonnegative(deltay)
         tau = self.T - self.timescale*self.env.now
@@ -172,6 +261,11 @@ class RMM01(CFMM):
 
     def virtualSwapYforX(self, deltay, numeraire):
         '''
+        Perform swap calculation from asset Y to asset X without actually swapping on the AMM (no reserves are updated)
+        
+        returns:
+        deltax          - Amount of X asset out
+        effective_price - Price the swap was recieved at denominated in numeraire of choice
         '''
         assert nonnegative(deltay)
         initial_x, initial_y = self.x, self.y
@@ -194,6 +288,10 @@ class RMM01(CFMM):
 
     def getMarginalPriceAfterXTrade(self, deltax, numeraire):
         '''
+        Calculate the pool spot price after a trade from asset X to Y of size deltax
+        
+        returns:
+        Spot price after trade denominated in numeraire of choice
         '''
         tau = self.T - self.timescale*self.env.now
         def g(delta):
@@ -205,6 +303,10 @@ class RMM01(CFMM):
 
     def getMarginalPriceAfterYTrade(self, deltay, numeraire):
         '''
+        Calculate the pool spot price after a trade from asset Y to X of size deltay
+        
+        returns:
+        Spot price after trade denominated in numeraire of choice
         '''
         tau = self.T - self.timescale*self.env.now
         def g(delta):
@@ -216,6 +318,8 @@ class RMM01(CFMM):
 
     def findArbitrageAmountYIn(self, m):
         '''
+        Given a reference price denominated in y, find the amount of y to swap in
+        in order to align the price of the pool with the reference market.
         '''
         assert m > self.getMarginalPriceAfterYTrade(0, 'y')
         tau = self.T - self.env.now*self.timescale
@@ -227,6 +331,8 @@ class RMM01(CFMM):
     
     def findArbitrageAmountXIn(self, m):
         '''
+        Given a reference price denominated in y, find the amount of x to swap in
+        in order to align the price of the pool with the reference market.
         '''
         assert m < self.getMarginalPriceAfterXTrade(0, 'y')
         tau = self.T - self.env.now*self.timescale
