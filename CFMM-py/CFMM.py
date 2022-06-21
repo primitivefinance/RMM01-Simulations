@@ -50,15 +50,10 @@ class UniV2(CFMM):
         new_y_reserves = self.TradingFunction()/(self.x + self.gamma * deltax)
         deltay = self.y - new_y_reserves
         assert nonnegative(deltay)
-        self.y = new_y_reserves
-        self.x += deltax
         if numeraire == 'y': 
             effective_price = deltay/deltax
         elif numeraire == 'x':
             effective_price = deltax/deltay
-        self.x = initial_x
-        self.y = initial_y
-
         return deltay, effective_price
     
     def swapYforX(self, deltay):
@@ -90,14 +85,10 @@ class UniV2(CFMM):
         new_x_reserves = self.TradingFunction()/(self.y + self.gamma * deltay)
         deltax = self.x - new_x_reserves
         assert nonnegative(deltax)
-        self.x = new_x_reserves
-        self.y += deltay
         if numeraire == 'y':
             effective_price = deltay/deltax 
         if numeraire == 'x':
             effective_price = deltax/deltay 
-        self.x = initial_x 
-        self.y = initial_y
         return deltax, effective_price
 
     def getMarginalPriceAfterXTrade(self, deltax, numeraire):
@@ -225,15 +216,10 @@ class RMM01(CFMM):
         deltaynorm = self.y - new_y_reserves
         deltay = self.scaleUp(deltaynorm)
         assert nonnegative(deltay)
-        self.y = new_y_reserves
-        self.x += self.scaleDown(deltax)
         if numeraire == 'y': 
             effective_price = deltay/deltax
         elif numeraire == 'x':
             effective_price = deltax/deltay
-        self.x = initial_x
-        self.y = initial_y
-
         return deltay, effective_price
 
 
@@ -274,14 +260,10 @@ class RMM01(CFMM):
         deltaxnorm = self.x - new_x_reserves
         deltax = self.scaleUp(deltaxnorm)
         assert nonnegative(deltax)
-        self.x = new_x_reserves
-        self.y += self.scaleDown(deltay)
         if numeraire == 'y':
             effective_price = deltay/deltax 
         if numeraire == 'x':
             effective_price = deltax/deltay 
-        self.x = initial_x 
-        self.y = initial_y
         return deltax, effective_price
 
 
