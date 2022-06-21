@@ -26,6 +26,7 @@ This project is intended to investigate the replication of payoffs using custom 
 
 All the different functions and design choices are documented in a separate document.
 
+---
 ### CFMM-py
 🚧 **Package still under construction** 🚧
 
