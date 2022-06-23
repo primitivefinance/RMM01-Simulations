@@ -29,7 +29,7 @@ class Two_CFMM_Arbitrage:
                 deltay = self.M1.virtualSwapXforY(x, 'y')[0]
                 rhs = self.RMM.getMarginalPriceAfterYTrade(deltay, 'y')
                 return lhs - rhs
-            deltax_required = op.brentq(FindZero(x), 0)
+            deltax_required = op.brentq(findZero, self.M1.xbounds[0], self.M1.xbounds[1])
             return deltax_required
         else:
             return 0
@@ -39,11 +39,11 @@ class Two_CFMM_Arbitrage:
         deltay_RMM = self.RMM.virtualSwapXforY(deltax, 'y')[0]
         if deltay_RMM > y:
             def findZero(y):
-                lhs = self.Uni.getMarginalPriceAfterYTrade(y, 'y')
+                lhs = self.M1.getMarginalPriceAfterYTrade(y, 'y')
                 deltax = self.M1.virtualSwapYforX(y)[0]
                 rhs = self.RMM.getMarginalPriceAfterXTrade(deltax, 'y')
                 return lhs - rhs
-            deltay_required = op.brentq(lhs-rhs, 0)
+            deltay_required = op.brentq(findZero, self.M1.ybounds[0], self.M1.ybounds[1])
             return deltay_required
         else:
             return 0
@@ -69,16 +69,16 @@ class Two_CFMM_Arbitrage:
             price_difference = self.testSpotPriceDifference()[0] - self.testSpotPriceDifference()[1]
             epsilon = 1e-8
             if price_difference > 0:
-                arbquantity = self.arbAmountUniPriceGreaterThanRMM01(epsilon)
+                arbquantity = self.arbAmount_M1Price_GreaterThan_RMM(epsilon)
                 if arbquantity == 0:
                     continue
                 else:
-                    arbExactly_M1Price_Greater(arbquantity)
+                    self.arbExactly_M1Price_Greater(arbquantity)
             elif price_difference < 0:
-                arbquantity = self.arbAmountUniPriceLessThanRMM01(epsilon)
+                arbquantity = self.arbAmount_M1Price_LessThan_RMM(epsilon)
                 if arbquantity == 0:
                     continue
                 else:
-                    arbExactly_M1Price_Less(arbquantity)
+                    self.arbExactly_M1Price_Less(arbquantity)
             else:
                 continue
