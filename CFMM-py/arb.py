@@ -65,20 +65,23 @@ class Two_CFMM_Arbitrage:
         return profit
         
     def arbProcess(self):
-        while True:
+        if True:
             price_difference = self.testSpotPriceDifference()[0] - self.testSpotPriceDifference()[1]
             epsilon = 1e-8
             if price_difference > 0:
                 arbquantity = self.arbAmount_M1Price_GreaterThan_RMM(epsilon)
                 if arbquantity == 0:
-                    continue
+                    # continue
+                    print("nothing happened here")
                 else:
                     self.arbExactly_M1Price_Greater(arbquantity)
             elif price_difference < 0:
                 arbquantity = self.arbAmount_M1Price_LessThan_RMM(epsilon)
                 if arbquantity == 0:
-                    continue
+                    # continue
+                    print("nothing happened here")
                 else:
                     self.arbExactly_M1Price_Less(arbquantity)
             else:
-                continue
+                # continue
+                print("nothing happened here")
