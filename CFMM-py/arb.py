@@ -50,7 +50,7 @@ class Two_CFMM_Arbitrage:
 
     def arbExactly_M1Price_Greater(self, x):
         deltay = self.M1.virtualSwapXforY(x, 'y')[0]
-        self.M1.swapXforY(x, 'y')
+        self.M1.swapXforY(x)
         deltax_RMM = self.RMM.virtualSwapYforX(deltay, 'y')[0]
         self.RMM.swapYforX(deltay, 'y')
         profit = deltax_RMM - x
@@ -58,7 +58,7 @@ class Two_CFMM_Arbitrage:
     
     def arbExactly_M1Price_Less(self, y):
         deltax = self.M1.virtualSwapYforX(y, 'y')[0]
-        self.M1.swapYforX(y, 'y')
+        self.M1.swapYforX(y)
         deltay_RMM = self.RMM.virtualSwapXforY(deltax, 'y')[0]
         self.RMM.swapXforY(deltax, 'y')
         profit = deltay_RMM - y
