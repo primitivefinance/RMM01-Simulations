@@ -3,6 +3,11 @@ import numpy as np
 from scipy.stats import norm
 from utils import nonnegative
 
+# For brentq bounds
+
+ZERO = 1e-8
+INF = 1e18
+
 class CFMM:
     def __init__(self, x, y, xbounds, ybounds, fee):
         self.x = x
@@ -14,7 +19,7 @@ class CFMM:
 
 class UniV2(CFMM):
     def __init__(self, x, y, fee):
-        super().__init__(x, y, np.inf, np.inf, fee)
+        super().__init__(x, y, [ZERO, INF], [ZERO, INF], fee)
 
     def TradingFunction(self):
         k = self.x * self.y
@@ -146,7 +151,7 @@ class UniV2(CFMM):
 
 class RMM01(CFMM):
     def __init__(self, x, y, fee, strike, vol, duration, env, timescale, n_shares):
-        super().__init__(x, y, 1, np.inf, fee)
+        super().__init__(x, y, [ZERO, 1], [ZERO, INF], fee)
         self.K = strike
         self.vol= vol
         self.T = duration
