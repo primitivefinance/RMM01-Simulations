@@ -329,4 +329,9 @@ if True:
 
     arbitrager = Two_CFMM_Arbitrage(univ2pool, rmm01Pool, env)
 
-    arbitrager.arbProcess()
+    arbitrager.arbProcess()    
+    
+    print(rmm01Pool.getMarginalPriceAfterXTrade(0, 'y'))
+    print(univ2pool.getMarginalPriceAfterXTrade(0, 'y'))
+
+
