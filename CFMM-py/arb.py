@@ -5,10 +5,10 @@ import scipy
 
 class Two_CFMM_Arbitrage:
 
-    def __init__(self, market1, market2, env):
+    def __init__(self, unipool, rmmpool, env):
         self.env = env
-        self.M1 = market1
-        self.RMM = market2
+        self.M1 = unipool
+        self.RMM = rmmpool
 
     def testSpotPriceDifference(self):
         '''
