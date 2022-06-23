@@ -40,7 +40,7 @@ class Two_CFMM_Arbitrage:
         if deltay_RMM > y:
             def findZero(y):
                 lhs = self.M1.getMarginalPriceAfterYTrade(y, 'y')
-                deltax = self.M1.virtualSwapYforX(y)[0]
+                deltax = self.M1.virtualSwapYforX(y, 'y')[0]
                 rhs = self.RMM.getMarginalPriceAfterXTrade(deltax, 'y')
                 return lhs - rhs
             deltay_required = op.brentq(findZero, self.M1.ybounds[0], self.M1.ybounds[1])
