@@ -151,7 +151,7 @@ class UniV2(CFMM):
 
 class RMM01(CFMM):
     def __init__(self, x, y, fee, strike, vol, duration, env, timescale, n_shares):
-        super().__init__(x, y, [ZERO, 1], [ZERO, INF], fee)
+        super().__init__(x, y, [ZERO, 1*n_shares], [ZERO, INF], fee)
         self.K = strike
         self.vol= vol
         self.T = duration
@@ -338,6 +338,7 @@ class RMM01(CFMM):
         # self.x += deltax 
         # self.y += deltay 
         self.n += n_shares_to_add
+        self.xbounds[1] = 1*self.n
         return deltax, deltay
     
     def removeLiquidity(self, n_shares_to_remove):
@@ -349,4 +350,5 @@ class RMM01(CFMM):
         deltax = (n_shares_to_remove/self.n)*self.x
         deltay = (n_shares_to_remove/self.n)*self.y
         self.n -= n_shares_to_remove
+        self.xbounds[1] = 1*self.n
         return deltax, deltay
