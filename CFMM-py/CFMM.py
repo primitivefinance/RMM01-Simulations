@@ -282,7 +282,7 @@ class RMM01(CFMM):
         '''
         tau = self.T - self.timescale*self.env.now
         def g(delta):
-            return self.K*np.exp(norm.ppf(1 - self.x - deltax)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
+            return self.K*np.exp(norm.ppf(1 - self.x - delta)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
         if numeraire == 'y':
             return self.gamma*g(self.gamma*self.scaleDown(deltax))
         elif numeraire == 'x':
