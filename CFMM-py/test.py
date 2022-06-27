@@ -308,30 +308,134 @@ if False:
 
 if True:
 
+    ###################################################
+    # PRICE UNI LOWER THAN RMM TEST 
+    ###################################################
+
+    print("------- PRICE UNI LOWER THAN RMM ------- \n")
+
     K = 1500
     sigma = 0.8
     maturity = 1
     fee = 0
-    initial_x = 0.5
-    initial_y = K*norm.cdf(norm.ppf(1-initial_x) - sigma*np.sqrt(maturity))
+    initial_x_rmm = 0.5
+    initial_y_rmm = K*norm.cdf(norm.ppf(1-initial_x_rmm) - sigma*np.sqrt(maturity))
     timescale = 1
     # print("Initial x: ", initial_x)
     # print("Initial y: ", initial_y)
 
     n_shares = 10
 
-    rmm01Pool = RMM01(initial_x, initial_y, fee, K, sigma, maturity, env, timescale, n_shares)
+    initial_x_uni = 10
+    initial_y_uni = 9000
 
-    univ2pool = UniV2(5, 6000, 0)
+    rmm01Pool = RMM01(initial_x_rmm, initial_y_rmm, fee, K, sigma, maturity, env, timescale, n_shares)
 
-    print(rmm01Pool.getMarginalPriceAfterXTrade(0, 'y'))
-    print(univ2pool.getMarginalPriceAfterXTrade(0, 'y'))
+    univ2pool = UniV2(initial_x_uni, initial_y_uni, 0)
 
     arbitrager = Two_CFMM_Arbitrage(univ2pool, rmm01Pool, env)
 
-    arbitrager.arbProcess()    
+    # No fee
+
+    print("NO FEE CASE \n")
+
+    print("Initial price: ", "\n")
+    print("RMM pool: ", rmm01Pool.getMarginalPriceAfterXTrade(0, 'y'))
+    print("Uni Pool: ", univ2pool.getMarginalPriceAfterXTrade(0, 'y'), "\n")
+
+    arbitrager.arbProcess() 
     
-    print(rmm01Pool.getMarginalPriceAfterXTrade(0, 'y'))
-    print(univ2pool.getMarginalPriceAfterXTrade(0, 'y'))
+    print("Price after arbprocess: ", "\n")
+    print("RMM pool: ", rmm01Pool.getMarginalPriceAfterXTrade(0, 'y'))
+    print("Uni pool: ", univ2pool.getMarginalPriceAfterXTrade(0, 'y'), "\n")
 
+    # Non zero and equal fee
 
+    rmm01Pool.x = initial_x_rmm
+    rmm01Pool.y = initial_y_rmm
+    univ2pool.x = initial_x_uni
+    univ2pool.y = initial_y_uni
+
+    fee = 0.02
+    rmm01Pool.gamma = 1-fee 
+    univ2pool.gamma = 1-fee
+
+    print("FEE CASE \n")
+
+    print("RMM pool no-arb band before arbitrage:")
+    print(rmm01Pool.getMarginalPriceAfterXTrade( 0, 'y'), ", ",rmm01Pool.getMarginalPriceAfterYTrade(0, 'y'), "\n")
+
+    print("Uni pool no-arb band before arbitrage:")
+    print(univ2pool.getMarginalPriceAfterXTrade(0, 'y'), ", ",univ2pool.getMarginalPriceAfterYTrade(0, 'y'), "\n")
+
+    arbitrager.arbProcess()
+
+    print("RMM pool no-arb band after arbitrage:")
+    print(rmm01Pool.getMarginalPriceAfterXTrade(0, 'y'), ", ",rmm01Pool.getMarginalPriceAfterYTrade(0, 'y'), "\n")
+
+    print("Uni pool no-arb band after arbitrage: ")
+    print(univ2pool.getMarginalPriceAfterXTrade(0, 'y'), ", ", univ2pool.getMarginalPriceAfterYTrade(0, 'y'), "\n")
+
+    print("------- PRICE UNI GREATER THAN RMM ------- \n")
+
+    K = 1500
+    sigma = 0.8
+    maturity = 1
+    fee = 0
+    initial_x_rmm = 0.5
+    initial_y_rmm = K*norm.cdf(norm.ppf(1-initial_x_rmm) - sigma*np.sqrt(maturity))
+    timescale = 1
+    # print("Initial x: ", initial_x)
+    # print("Initial y: ", initial_y)
+
+    n_shares = 10
+
+    initial_x_uni = 10
+    initial_y_uni = 12000
+
+    rmm01Pool = RMM01(initial_x_rmm, initial_y_rmm, fee, K, sigma, maturity, env, timescale, n_shares)
+
+    univ2pool = UniV2(initial_x_uni, initial_y_uni, 0)
+
+    arbitrager = Two_CFMM_Arbitrage(univ2pool, rmm01Pool, env)
+
+    # No fee
+
+    print("NO FEE CASE \n")
+
+    print("Initial price: ", "\n")
+    print("RMM pool: ", rmm01Pool.getMarginalPriceAfterXTrade(0, 'y'))
+    print("Uni Pool: ", univ2pool.getMarginalPriceAfterXTrade(0, 'y'), "\n")
+
+    arbitrager.arbProcess() 
+    
+    print("Price after arbprocess: ", "\n")
+    print("RMM pool: ", rmm01Pool.getMarginalPriceAfterXTrade(0, 'y'))
+    print("Uni pool: ", univ2pool.getMarginalPriceAfterXTrade(0, 'y'), "\n")
+
+    # Non zero and equal fee
+
+    rmm01Pool.x = initial_x_rmm
+    rmm01Pool.y = initial_y_rmm
+    univ2pool.x = initial_x_uni
+    univ2pool.y = initial_y_uni
+
+    fee = 0.02
+    rmm01Pool.gamma = 1-fee 
+    univ2pool.gamma = 1-fee
+
+    print("FEE CASE \n")
+
+    print("RMM pool no-arb band before arbitrage:")
+    print(rmm01Pool.getMarginalPriceAfterXTrade( 0, 'y'), ", ",rmm01Pool.getMarginalPriceAfterYTrade(0, 'y'), "\n")
+
+    print("Uni pool no-arb band before arbitrage:")
+    print(univ2pool.getMarginalPriceAfterXTrade(0, 'y'), ", ",univ2pool.getMarginalPriceAfterYTrade(0, 'y'), "\n")
+
+    arbitrager.arbProcess()
+
+    print("RMM pool no-arb band after arbitrage:")
+    print(rmm01Pool.getMarginalPriceAfterXTrade(0, 'y'), ", ",rmm01Pool.getMarginalPriceAfterYTrade(0, 'y'), "\n")
+
+    print("Uni pool no-arb band after arbitrage: ")
+    print(univ2pool.getMarginalPriceAfterXTrade(0, 'y'), ", ", univ2pool.getMarginalPriceAfterYTrade(0, 'y'), "\n")
