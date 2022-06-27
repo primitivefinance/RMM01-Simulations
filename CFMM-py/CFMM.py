@@ -151,7 +151,7 @@ class UniV2(CFMM):
 
 class RMM01(CFMM):
     def __init__(self, x, y, fee, strike, vol, duration, env, timescale, n_shares):
-        super().__init__(x, y, [ZERO, 1*n_shares], [ZERO, INF], fee)
+        super().__init__(x, y, [ZERO, 1*n_shares], [ZERO, strike*n_shares], fee)
         self.K = strike
         self.vol= vol
         self.T = duration
@@ -297,12 +297,15 @@ class RMM01(CFMM):
         '''
         tau = self.T - self.timescale*self.env.now
         def g(delta):
+            print("\n TEST: ", norm.ppf((self.y + delta - self.TradingFunction())/self.K), "\n")
             return (1/self.K)*np.exp(-norm.ppf((self.y + delta - self.TradingFunction())/self.K)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
         if numeraire == 'x':
             return self.gamma*g(self.gamma*self.scaleDown(deltay))
         elif numeraire == 'y':
-            return 1/(self.gamma*g(self.gamma*self.scaleDown(deltay)))
-
+            if (self.gamma*g(self.gamma*self.scaleDown(deltay))) > ZERO:
+                return 1/(self.gamma*g(self.gamma*self.scaleDown(deltay)))
+            else: 
+                return INF
     def findArbitrageAmountYIn(self, m):
         '''
         Given a reference price denominated in y, find the amount of y to swap in
@@ -339,6 +342,7 @@ class RMM01(CFMM):
         # self.y += deltay 
         self.n += n_shares_to_add
         self.xbounds[1] = 1*self.n
+        self.ybounds[1] = self.K*self.n
         return deltax, deltay
     
     def removeLiquidity(self, n_shares_to_remove):
@@ -351,4 +355,5 @@ class RMM01(CFMM):
         deltay = (n_shares_to_remove/self.n)*self.y
         self.n -= n_shares_to_remove
         self.xbounds[1] = 1*self.n
+        self.ybounds[1] = self.K*self.n
         return deltax, deltay
