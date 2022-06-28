@@ -1,4 +1,6 @@
+from multiprocessing import Pool
 import rlcompleter
+from socket import timeout
 from CFMM import UniV2, RMM01
 from arb import Two_CFMM_Arbitrage
 from scipy.stats import norm
@@ -306,7 +308,7 @@ if False:
 # Test arbitrager class
 
 
-if True:
+if False:
 
     ###################################################
     # PRICE UNI LOWER THAN RMM TEST 
@@ -439,3 +441,97 @@ if True:
 
     print("Uni pool no-arb band after arbitrage: ")
     print(univ2pool.getMarginalPriceAfterXTrade(0, 'y'), ", ", univ2pool.getMarginalPriceAfterYTrade(0, 'y'), "\n")
+
+# Test SimPy
+
+if True:
+
+    import random
+
+
+
+    def buy():
+        yield round(random.random())
+
+        
+    class randomSwapAgent:
+        def __init__(self, env, x, y) -> None:
+            self.env = env
+            self.x = x
+            self.y = y 
+        
+        def randomSwap(self, uniPool):
+            for b in buy():
+                if b: 
+                    # Random amount of Y to swap in 
+                    # between 100 and 10000
+                    amountYIn = 9900*random.random() + 100
+                    print("Agent buying x tokens at time ", env.now)
+                    out, _ = uniPool.swapYforX(amountYIn)
+                    self.y -= amountYIn
+                    self.x += out
+                    print("x = ", uniPool.x)
+                    print("y = ", uniPool.y, '\n')
+                    yield env.timeout(1)
+                else:
+                    # Random amount of X to swap in 
+                    # between 0.1 and 10
+                    amountXIn = 9.9*random.random() + 0.1
+                    print("Agent selling x tokens at time ", env.now)
+                    out, _ = uniPool.swapXforY(amountXIn)
+                    print("x = ", uniPool.x)
+                    print("y = ", uniPool.y, '\n')
+                    self.x -= amountXIn
+                    self.y += out
+                    yield env.timeout(1)
+        
+    class PoolSimulation:
+        def __init__(self, env, agents, pool) -> None:
+            self.env = env
+            self.agents = agents
+            self.processes = []
+            self.pool = pool
+            for agent in agents: 
+                 self.processes.append(env.process(agent.randomSwap(self.pool)))
+            
+
+    test_pool_1 = PoolSimulation(env, [randomSwapAgent(env, 1000, 1000000)], UniV2(500, 500000, 0))
+
+    env.run(until=20)
+
+    # def tradingActivity(self):
+    #     while True:
+    #         self.agent.randomSwap(self.pool)
+    #         yield env.timeout(1)
+
+    # env.process(PoolSimulation(env, [randomSwapAgent(env, 1000, 1000000)], UniV2(500, 500000, 0)).tradingActivity())
+
+    # def randomSwap(uniPool):
+    #     for b in buy():
+    #         if b: 
+    #             # Random amount of Y to swap in 
+    #             # between 100 and 10000
+    #             amountYIn = 9900*random.random() + 100
+    #             print("Agent buying x tokens at time ", env.now)
+    #             uniPool.swapYforX(amountYIn)
+    #             print("x = ", uniPool.x)
+    #             print("y = ", uniPool.y, '\n')
+    #             yield env.timeout(1)
+    #         else:
+    #             # Random amount of X to swap in 
+    #             # between 0.1 and 10
+    #             amountXIn = 9.9*random.random() + 0.1
+    #             print("Agent selling x tokens at time ", env.now)
+    #             uniPool.swapXforY(amountXIn)
+    #             print("x = ", uniPool.x)
+    #             print("y = ", uniPool.y, '\n')
+    #             yield env.timeout(1)
+    
+    # def tradingActivity(env, pool):
+    #     while True:
+    #         amountOut = randomSwap(pool)
+    #         print("Got ", amountOut, " tokens at time ", env.now)
+    #         yield env.timeout(2)
+            
+    # env.process(randomSwap(UniV2(500, 500000, 0)))
+    # env.process(tradingActivity(env, UniV2(500, 500000, 0)))
