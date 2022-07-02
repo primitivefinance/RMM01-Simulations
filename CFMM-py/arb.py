@@ -5,7 +5,7 @@ import scipy
 ZERO = 1e-8
 INF = 1e18
 
-class Two_CFMM_Arbitrage:
+class Two_CFMM_Arbitrager:
 
     def __init__(self, unipool, rmmpool, env):
         self.env = env
@@ -99,30 +99,20 @@ class Two_CFMM_Arbitrage:
         return profit
         
     def arbProcess(self):
-        if True:
+        while True:
             price_difference = self.testSpotPriceDifference()[0] - self.testSpotPriceDifference()[1]
             epsilon = 1e-8
             if price_difference > 0:
                 arbquantity = self.arbAmount_M1Price_GreaterThan_RMM(epsilon)
-                # print("I AM HERE 1")
                 if arbquantity == 0:
-                    # print("I AM HERE 2")
-                    # continue
-                    print("NOTHING HAPPENED HERE 1")
+                    continue
                 else:
-                    # print("I AM HERE 3")
                     self.arbExactly_M1Price_Greater(arbquantity)
             elif price_difference < 0:
-                # print("I AM HERE 4")
                 arbquantity = self.arbAmount_M1Price_LessThan_RMM(epsilon)
                 if arbquantity == 0:
-                    # print("I AM HERE 5")
-                    # continue
-                    print("NOHTING HAPPENED HERE 2")
+                    continue
                 else:
-                    # print("I AM HERE 6")
                     self.arbExactly_M1Price_Less(arbquantity)
             else:
-                # print("I AM HERE 7")
-                # continue
-                print("NOHTING HAPPENED HERE 3")
+                continue
