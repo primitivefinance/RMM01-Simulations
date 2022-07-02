@@ -2,7 +2,7 @@ from multiprocessing import Pool
 import rlcompleter
 from socket import timeout
 from CFMM import UniV2, RMM01
-from arb import Two_CFMM_Arbitrage
+from arb import Two_CFMM_Arbitrager
 from scipy.stats import norm
 import numpy as np
 import simpy
