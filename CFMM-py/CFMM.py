@@ -25,7 +25,7 @@ class UniV2(CFMM):
         k = self.x * self.y
         return k
 
-    def swapXforY(self, deltax):
+    def swapXforY(self, deltax, numeraire):
         '''
         Perform swap calculation from asset X to asset Y and updating the reserves accordingly
         
@@ -38,7 +38,10 @@ class UniV2(CFMM):
         assert nonnegative(deltay)
         self.x += deltax
         self.y -= deltay
-        effective_price = deltay/deltax
+        if numeraire == 'y':
+            effective_price = deltay/deltax
+        elif numeraire == 'x':
+            effective_price = deltax/deltay
         return deltay, effective_price
 
     def virtualSwapXforY(self, deltax, numeraire):
@@ -61,7 +64,7 @@ class UniV2(CFMM):
             effective_price = deltax/deltay
         return deltay, effective_price
     
-    def swapYforX(self, deltay):
+    def swapYforX(self, deltay, numeraire):
         '''
         Perform swap calculation from asset Y to asset X and updating the reserves accordingly
         
@@ -74,7 +77,10 @@ class UniV2(CFMM):
         assert nonnegative(deltax)
         self.y += deltay
         self.x -= deltax
-        effective_price = deltay/deltax
+        if numeraire == 'y':
+            effective_price = deltay/deltax
+        elif numeraire == 'x':
+            effective_price = deltax/deltay
         return deltax, effective_price
     
     def virtualSwapYforX(self, deltay, numeraire):
