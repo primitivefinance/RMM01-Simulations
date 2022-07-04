@@ -6,6 +6,7 @@ from arb import Two_CFMM_Arbitrager
 from scipy.stats import norm
 import numpy as np
 import simpy
+import matplotlib.pyplot as plt
 
 env = simpy.Environment()
 
@@ -222,7 +223,7 @@ if False:
 
 # More than one LP share implementation
 
-if False:
+if True:
 
 
     K = 1500
@@ -239,9 +240,10 @@ if False:
 
     rmm01Pool = RMM01(initial_x, initial_y, fee, K, sigma, maturity, env, timescale, n_shares)
 
-    print("x reserves after: ", rmm01Pool.x)
-    print("y reserves after: ", rmm01Pool.y)
+    print("x reserves before: ", rmm01Pool.x)
+    print("y reserves before: ", rmm01Pool.y)
     x, y = rmm01Pool.addLiquidity(1)
+    # print("n shares = ", rmm01Pool.n)
     x, y = rmm01Pool.removeLiquidity(1)
     print("x reserves after: ", rmm01Pool.x)
     print("y reserves after: ", rmm01Pool.y)
@@ -254,13 +256,16 @@ if False:
 
     print("\n----- Swap Amount X In ----- \n")
     amount_in = 0.1*n_shares
+    # print("AMOUNT IN = ", amount_in)
     expected_amount_out = initial_y - K*norm.cdf(norm.ppf(1-(initial_x+gamma*rmm01Pool.scaleDown(amount_in))) - sigma*np.sqrt(maturity))
     expected_amount_out = rmm01Pool.scaleUp(expected_amount_out)
     print("Expected: ", expected_amount_out)
     print("Actual: ", rmm01Pool.swapXforY(amount_in, "y")[0])
+    # print("New amount x: ", rmm01Pool.x)
+    # print("New amount y: ", rmm01Pool.y)
 
-    rmm01Pool.x = initial_x
-    rmm01Pool.y = initial_y
+    rmm01Pool.x = initial_x*n_shares 
+    rmm01Pool.y = initial_y*n_shares
 
     print("\n----- Swap Amount Y In ----- \n")
     amount_in = 100*n_shares
@@ -269,8 +274,8 @@ if False:
     print("Expected: ", expected_amount_out)
     print("Actual: ", rmm01Pool.swapYforX(amount_in, "y")[0])
 
-    rmm01Pool.x = initial_x
-    rmm01Pool.y = initial_y
+    rmm01Pool.x = initial_x*n_shares
+    rmm01Pool.y = initial_y*n_shares
 
     print("\n----- X -> Y Spot price  ----- \n")
 
@@ -294,8 +299,8 @@ if False:
     print("No-arbitrage bounds: ", rmm01Pool.getMarginalPriceAfterXTrade(0, "y"), " | ", rmm01Pool.getMarginalPriceAfterYTrade(0, "y"), "\n"  )
 
     # Reference market below price of pool
-    rmm01Pool.x = initial_x
-    rmm01Pool.y = initial_y
+    rmm01Pool.x = initial_x*n_shares
+    rmm01Pool.y = initial_y*n_shares
     m = 900
     print("Reference price: ", m)
     print("Initial pool price in y: ", rmm01Pool.getMarginalPriceAfterXTrade(0, "y"))
@@ -444,16 +449,14 @@ if False:
 
 # Test SimPy
 
-if True:
+if False:
 
     import random
 
-
-
     def buy():
-        yield round(random.random())
+        while True:
+            yield round(random.random())
 
-        
     class randomSwapAgent:
         def __init__(self, env, x, y) -> None:
             self.env = env
@@ -467,18 +470,18 @@ if True:
                     # between 100 and 10000
                     amountYIn = 9900*random.random() + 100
                     print("Agent buying x tokens at time ", env.now)
-                    out, _ = uniPool.swapYforX(amountYIn)
+                    out, _ = uniPool.swapYforX(amountYIn, 'y')
                     self.y -= amountYIn
                     self.x += out
                     print("x = ", uniPool.x)
                     print("y = ", uniPool.y, '\n')
-                    yield env.timeout(1)
+                    yield env.timeout(5)
                 else:
                     # Random amount of X to swap in 
                     # between 0.1 and 10
                     amountXIn = 9.9*random.random() + 0.1
                     print("Agent selling x tokens at time ", env.now)
-                    out, _ = uniPool.swapXforY(amountXIn)
+                    out, _ = uniPool.swapXforY(amountXIn, 'y')
                     print("x = ", uniPool.x)
                     print("y = ", uniPool.y, '\n')
                     self.x -= amountXIn

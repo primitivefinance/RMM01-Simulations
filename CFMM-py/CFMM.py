@@ -164,13 +164,15 @@ class RMM01(CFMM):
         self.env = env
         self.timescale = timescale
         self.n = n_shares
+        self.x = n_shares*self.x 
+        self.y = n_shares*self.y
         # Reserves normalized to one unit of the risky
         # self.xnorm = x/self.n
         # self.ynorm = y/self.n
 
     def TradingFunction(self):
         tau = self.T - self.timescale*self.env.now
-        k = self.y - self.K*norm.cdf(norm.ppf(1-self.x)-self.vol*np.sqrt(tau))
+        k = self.scaleDown(self.y) - self.K*norm.cdf(norm.ppf(1-self.scaleDown(self.x))-self.vol*np.sqrt(tau))
         return k
 
     def scaleDown(self, amount):
@@ -198,12 +200,12 @@ class RMM01(CFMM):
         assert nonnegative(deltax)
         tau = self.T - self.timescale*self.env.now
         # Normalize delta x to 1 unit
-        new_y_reserves = self.TradingFunction() + self.K * norm.cdf(norm.ppf(1 - (self.x + self.gamma*self.scaleDown(deltax))) - self.vol * np.sqrt(tau))
-        deltaynorm = self.y - new_y_reserves
+        new_y_reserves = self.TradingFunction() + self.K * norm.cdf(norm.ppf(1 - (self.scaleDown(self.x) + self.gamma*self.scaleDown(deltax))) - self.vol * np.sqrt(tau))
+        deltaynorm = self.scaleDown(self.y) - new_y_reserves
         deltay = self.scaleUp(deltaynorm)
         assert nonnegative(deltay)
-        self.y = new_y_reserves
-        self.x += self.scaleDown(deltax)
+        self.y = self.scaleUp(new_y_reserves)
+        self.x += deltax
         if numeraire == 'y': 
             effective_price = deltay/deltax
         elif numeraire == 'x':
@@ -223,8 +225,8 @@ class RMM01(CFMM):
         initial_x, initial_y = self.x, self.y
         tau = self.T - self.timescale*self.env.now
         # Normalize delta x to 1 unit
-        new_y_reserves = self.TradingFunction() + self.K * norm.cdf(norm.ppf(1 - (self.x + self.gamma*self.scaleDown(deltax))) - self.vol * np.sqrt(tau))
-        deltaynorm = self.y - new_y_reserves
+        new_y_reserves = self.TradingFunction() + self.K * norm.cdf(norm.ppf(1 - (self.scaleDown(self.x) + self.gamma*self.scaleDown(deltax))) - self.vol * np.sqrt(tau))
+        deltaynorm = self.scaleDown(self.y) - new_y_reserves
         deltay = self.scaleUp(deltaynorm)
         assert nonnegative(deltay)
         if numeraire == 'y': 
@@ -244,12 +246,12 @@ class RMM01(CFMM):
         '''
         assert nonnegative(deltay)
         tau = self.T - self.timescale*self.env.now
-        new_x_reserves = 1 - norm.cdf(norm.ppf(((self.y + self.gamma*self.scaleDown(deltay)) - self.TradingFunction()) / self.K) + self.vol * np.sqrt(tau))
-        deltaxnorm = self.x - new_x_reserves
+        new_x_reserves = 1 - norm.cdf(norm.ppf(((self.scaleDown(self.y) + self.gamma*self.scaleDown(deltay)) - self.TradingFunction()) / self.K) + self.vol * np.sqrt(tau))
+        deltaxnorm = self.scaleDown(self.x) - new_x_reserves
         deltax = self.scaleUp(deltaxnorm)
         assert nonnegative(deltax)
-        self.x = new_x_reserves
-        self.y += self.scaleDown(deltay)
+        self.x = self.scaleUp(new_x_reserves)
+        self.y += deltay
         if numeraire == 'y':
             effective_price = deltay/deltax 
         if numeraire == 'x':
@@ -268,8 +270,8 @@ class RMM01(CFMM):
         assert nonnegative(deltay)
         initial_x, initial_y = self.x, self.y
         tau = self.T - self.timescale*self.env.now
-        new_x_reserves = 1 - norm.cdf(norm.ppf(((self.y + self.gamma*self.scaleDown(deltay)) - self.TradingFunction()) / self.K) + self.vol * np.sqrt(tau))
-        deltaxnorm = self.x - new_x_reserves
+        new_x_reserves = 1 - norm.cdf(norm.ppf(((self.scaleDown(self.y) + self.gamma*self.scaleDown(deltay)) - self.TradingFunction()) / self.K) + self.vol * np.sqrt(tau))
+        deltaxnorm = self.scaleDown(self.x) - new_x_reserves
         deltax = self.scaleUp(deltaxnorm)
         assert nonnegative(deltax)
         if numeraire == 'y':
@@ -289,7 +291,7 @@ class RMM01(CFMM):
         '''
         tau = self.T - self.timescale*self.env.now
         def g(delta):
-            return self.K*np.exp(norm.ppf(1 - self.x - delta)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
+            return self.K*np.exp(norm.ppf(1 - self.scaleDown(self.x) - delta)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
         if numeraire == 'y':
             return self.gamma*g(self.gamma*self.scaleDown(deltax))
         elif numeraire == 'x':
@@ -304,7 +306,7 @@ class RMM01(CFMM):
         '''
         tau = self.T - self.timescale*self.env.now
         def g(delta):
-            return (1/self.K)*np.exp(-norm.ppf((self.y + delta - self.TradingFunction())/self.K)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
+            return (1/self.K)*np.exp(-norm.ppf((self.scaleDown(self.y) + delta - self.TradingFunction())/self.K)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
         if numeraire == 'x':
             return self.gamma*g(self.gamma*self.scaleDown(deltay))
         elif numeraire == 'y':
@@ -312,6 +314,7 @@ class RMM01(CFMM):
                 return 1/(self.gamma*g(self.gamma*self.scaleDown(deltay)))
             else: 
                 return INF
+
     def findArbitrageAmountYIn(self, m):
         '''
         Given a reference price denominated in y, find the amount of y to swap in
@@ -320,7 +323,7 @@ class RMM01(CFMM):
         assert m > self.getMarginalPriceAfterYTrade(0, 'y')
         tau = self.T - self.env.now*self.timescale
         def inverseG(ref_price):
-            return self.TradingFunction() - self.y + self.K*norm.cdf(-np.log(self.K*ref_price)/(self.vol*np.sqrt(tau)) - 0.5*self.vol*np.sqrt(tau))
+            return self.TradingFunction() - self.scaleDown(self.y) + self.K*norm.cdf(-np.log(self.K*ref_price)/(self.vol*np.sqrt(tau)) - 0.5*self.vol*np.sqrt(tau))
         m = 1/m
         return self.scaleUp((1/self.gamma)*inverseG((1/self.gamma)*m))
 
@@ -333,7 +336,7 @@ class RMM01(CFMM):
         assert m < self.getMarginalPriceAfterXTrade(0, 'y')
         tau = self.T - self.env.now*self.timescale
         def inverseG(ref_price):
-            return self.x - 1 + norm.cdf(-np.log(ref_price/self.K)/(self.vol*np.sqrt(tau)) - 0.5*self.vol*np.sqrt(tau))
+            return self.scaleDown(self.x) - 1 + norm.cdf(-np.log(ref_price/self.K)/(self.vol*np.sqrt(tau)) - 0.5*self.vol*np.sqrt(tau))
         return self.scaleUp((1/self.gamma)*inverseG((1/self.gamma)*m))
 
     def addLiquidity(self, n_shares_to_add):
@@ -342,10 +345,10 @@ class RMM01(CFMM):
         each asset that the liquidity provider should subtract from their wallet.
         n_shares_to_add can be fractional.
         '''
-        deltax = self.x*n_shares_to_add
-        deltay = self.y*n_shares_to_add
-        # self.x += deltax 
-        # self.y += deltay 
+        deltax = (self.x/self.n)*n_shares_to_add
+        deltay = (self.y/self.n)*n_shares_to_add
+        self.x += deltax 
+        self.y += deltay 
         self.n += n_shares_to_add
         self.xbounds[1] = 1*self.n
         self.ybounds[1] = self.K*self.n + self.TradingFunction()
@@ -357,8 +360,11 @@ class RMM01(CFMM):
         Return the amount of each asset credited to the 
         actor initiating the withdrawal.
         '''
+        assert n_shares_to_remove < self.n
         deltax = (n_shares_to_remove/self.n)*self.x
         deltay = (n_shares_to_remove/self.n)*self.y
+        self.x -= deltax 
+        self.y -= deltay 
         self.n -= n_shares_to_remove
         self.xbounds[1] = 1*self.n
         self.ybounds[1] = self.K*self.n + self.TradingFunction()
