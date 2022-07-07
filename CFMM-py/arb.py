@@ -134,7 +134,7 @@ class ReferencePriceArbitrager:
             # swap y in to increase the price of the pool.
             arb_amount = self.pool.findArbitrageAmountYIn(price)
             self.pool.swapYforX(arb_amount, 'y')
-        elif price < self.pool.getMarginalPriceAFterXTrade(0, 'y'):
+        elif price < self.pool.getMarginalPriceAfterXTrade(0, 'y'):
             # If the reference price denominated in y 
             # is below the no-arb bounds, we must 
             # swap x in to increase the price of the pool.
