@@ -118,8 +118,7 @@ class Two_CFMM_Arbitrager:
                 continue
 
 class ReferencePriceArbitrager:
-    def __init__(self, env, pool) -> None:
-        self.env = env 
+    def __init__(self, pool) -> None:
         self.pool = pool 
     
     def arbExactly(self, price):
@@ -133,10 +132,16 @@ class ReferencePriceArbitrager:
             # is above the no-arb bounds, we must 
             # swap y in to increase the price of the pool.
             arb_amount = self.pool.findArbitrageAmountYIn(price)
-            self.pool.swapYforX(arb_amount, 'y')
+            amount_out, _ = self.pool.swapYforX(arb_amount, 'y')
+            print("Pool reserves: x = ", self.pool.x, " y = ", self.pool.y)
+            print("Pool price = ", self.pool.getMarginalPriceAfterXTrade(0, 'y'), "\n")
+            return 'y', arb_amount, amount_out
         elif price < self.pool.getMarginalPriceAfterXTrade(0, 'y'):
             # If the reference price denominated in y 
             # is below the no-arb bounds, we must 
             # swap x in to increase the price of the pool.
             arb_amount = self.pool.findArbitrageAmountXIn(price)
-            self.pool.swapXforY(arb_amount, 'y')
+            amount_out, _ = self.pool.swapXforY(arb_amount, 'y')
+            print("Pool reserves: x = ", self.pool.x, " y = ", self.pool.y)
+            print("Pool price = ", self.pool.getMarginalPriceAfterXTrade(0, 'y'), "\n")
+            return 'x', arb_amount, amount_out
