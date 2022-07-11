@@ -210,7 +210,7 @@ class RMM01(CFMM):
             effective_price = deltay/deltax
         elif numeraire == 'x':
             effective_price = deltax/deltay
-        self.ybounds[1] = self.K*self.n + self.TradingFunction()
+        self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
         return deltay, effective_price
 
     def virtualSwapXforY(self, deltax, numeraire):
@@ -256,7 +256,7 @@ class RMM01(CFMM):
             effective_price = deltay/deltax 
         if numeraire == 'x':
             effective_price = deltax/deltay 
-        self.ybounds[1] = self.K*self.n + self.TradingFunction()
+        self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
         return deltax, effective_price
 
     def virtualSwapYforX(self, deltay, numeraire):
@@ -351,7 +351,7 @@ class RMM01(CFMM):
         self.y += deltay 
         self.n += n_shares_to_add
         self.xbounds[1] = 1*self.n
-        self.ybounds[1] = self.K*self.n + self.TradingFunction()
+        self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
         return deltax, deltay
     
     def removeLiquidity(self, n_shares_to_remove):
@@ -367,5 +367,5 @@ class RMM01(CFMM):
         self.y -= deltay 
         self.n -= n_shares_to_remove
         self.xbounds[1] = 1*self.n
-        self.ybounds[1] = self.K*self.n + self.TradingFunction()
+        self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
         return deltax, deltay
