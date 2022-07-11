@@ -31,7 +31,7 @@ class Two_CFMM_Arbitrager:
         # If we get more x out of RMM than we put in Uniswap
         if deltax_RMM > x:
             # The maximum amount of y that can be added to the RMM pool.
-            deltaymax = self.RMM.ybounds[1] - self.RMM.y*self.RMM.n
+            deltaymax = self.RMM.ybounds[1] - self.RMM.y
             # This amount of y may be inverted to obtain the maximum amount of 
             # y that may be swapped in the Uniswap pool
             if self.M1.y - deltaymax < 0:
@@ -61,7 +61,7 @@ class Two_CFMM_Arbitrager:
         # If we get more y out of RMM than we put in Uniswap
         if deltay_RMM > y:
             # The maximum amount of x that can be added to the RMM pool.
-            deltaxmax = self.RMM.xbounds[1] - self.RMM.x*self.RMM.n
+            deltaxmax = self.RMM.xbounds[1] - self.RMM.x
             # This amount of x may be inverted to obtain the maximum amount of 
             # y that may be swapped in the Uniswap pool
             if self.M1.x - deltaxmax < 0:
