@@ -404,7 +404,7 @@ if False:
 
     univ2pool = UniV2(initial_x_uni, initial_y_uni, 0)
 
-    arbitrager = Two_CFMM_Arbitrage(univ2pool, rmm01Pool, env)
+    arbitrager = Two_CFMM_Arbitrager(univ2pool, rmm01Pool)
 
     # No fee
 
