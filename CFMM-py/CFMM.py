@@ -172,6 +172,7 @@ class RMM01(CFMM):
 
     def TradingFunction(self):
         tau = self.T - self.timescale*self.env.now
+        assert tau >= 0
         k = self.scaleDown(self.y) - self.K*norm.cdf(norm.ppf(1-self.scaleDown(self.x))-self.vol*np.sqrt(tau))
         return k
 
