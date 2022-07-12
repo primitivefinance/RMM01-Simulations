@@ -156,7 +156,7 @@ class UniV2(CFMM):
 
 
 class RMM01(CFMM):
-    def __init__(self, x, y, fee, strike, vol, duration, env, timescale, n_shares):
+    def __init__(self, x, y, fee, strike, vol, duration, env, timescale, n_shares, creation_epoch):
         super().__init__(x, y, [ZERO, 1*n_shares], [ZERO, strike*n_shares], fee)
         self.K = strike
         self.vol= vol
@@ -166,12 +166,14 @@ class RMM01(CFMM):
         self.n = n_shares
         self.x = n_shares*self.x 
         self.y = n_shares*self.y
+        # In simulation time unit
+        self.creation_epoch = creation_epoch
         # Reserves normalized to one unit of the risky
         # self.xnorm = x/self.n
         # self.ynorm = y/self.n
 
     def TradingFunction(self):
-        tau = self.T - self.timescale*self.env.now
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         assert tau >= 0
         k = self.scaleDown(self.y) - self.K*norm.cdf(norm.ppf(1-self.scaleDown(self.x))-self.vol*np.sqrt(tau))
         return k

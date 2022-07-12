@@ -223,7 +223,7 @@ if False:
 
 # More than one LP share implementation
 
-if True:
+if False:
 
 
     K = 1500
@@ -313,7 +313,7 @@ if True:
 # Test arbitrager class
 
 
-if False:
+if True:
 
     ###################################################
     # PRICE UNI LOWER THAN RMM TEST 
@@ -336,11 +336,11 @@ if False:
     initial_x_uni = 10
     initial_y_uni = 9000
 
-    rmm01Pool = RMM01(initial_x_rmm, initial_y_rmm, fee, K, sigma, maturity, env, timescale, n_shares)
+    rmm01Pool = RMM01(initial_x_rmm, initial_y_rmm, fee, K, sigma, maturity, env, timescale, n_shares, 0)
 
     univ2pool = UniV2(initial_x_uni, initial_y_uni, 0)
 
-    arbitrager = Two_CFMM_Arbitrage(univ2pool, rmm01Pool, env)
+    arbitrager = Two_CFMM_Arbitrager(univ2pool, rmm01Pool)
 
     # No fee
 
@@ -383,6 +383,10 @@ if False:
     print("Uni pool no-arb band after arbitrage: ")
     print(univ2pool.getMarginalPriceAfterXTrade(0, 'y'), ", ", univ2pool.getMarginalPriceAfterYTrade(0, 'y'), "\n")
 
+    ###################################################
+    # PRICE UNI LOWER THAN RMM TEST 
+    ###################################################
+
     print("------- PRICE UNI GREATER THAN RMM ------- \n")
 
     K = 1500
@@ -400,7 +404,7 @@ if False:
     initial_x_uni = 10
     initial_y_uni = 12000
 
-    rmm01Pool = RMM01(initial_x_rmm, initial_y_rmm, fee, K, sigma, maturity, env, timescale, n_shares)
+    rmm01Pool = RMM01(initial_x_rmm, initial_y_rmm, fee, K, sigma, maturity, env, timescale, n_shares, 0)
 
     univ2pool = UniV2(initial_x_uni, initial_y_uni, 0)
 
