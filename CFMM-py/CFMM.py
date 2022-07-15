@@ -171,6 +171,8 @@ class RMM01(CFMM):
         # Reserves normalized to one unit of the risky
         # self.xnorm = x/self.n
         # self.ynorm = y/self.n
+        # Update bounds if we're testing a pool starting with a non zero invariant:
+        self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
 
     def TradingFunction(self):
         tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
