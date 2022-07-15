@@ -241,6 +241,9 @@ class RMM01(CFMM):
             effective_price = deltay/deltax
         elif numeraire == 'x':
             effective_price = deltax/deltay
+        if new_y_reserves < 0:
+            deltay = 0
+            effective_price = nan
         return deltay, effective_price
 
 
