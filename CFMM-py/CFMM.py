@@ -216,6 +216,9 @@ class RMM01(CFMM):
         elif numeraire == 'x':
             effective_price = deltax/deltay
         self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
+        # Max x is given by zero of x(y) function
+        self.xbounds[1] = 1 - norm.cdf(norm.ppf((-self.TradingFunction())/self.K) + self.vol*np.sqrt(tau))
+        assert nonnegative(self.x) and nonnegative(self.y)
         return deltay, effective_price
 
     def virtualSwapXforY(self, deltax, numeraire):
@@ -262,6 +265,8 @@ class RMM01(CFMM):
         if numeraire == 'x':
             effective_price = deltax/deltay 
         self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
+        self.xbounds[1] = 1 - norm.cdf(norm.ppf((-self.TradingFunction())/self.K) + self.vol*np.sqrt(tau))
+        assert nonnegative(self.x) and nonnegative(self.y)
         return deltax, effective_price
 
     def virtualSwapYforX(self, deltay, numeraire):
