@@ -201,7 +201,7 @@ class RMM01(CFMM):
         effective_price - Price the swap was recieved at denominated in numeraire of choice
         '''
         assert nonnegative(deltax)
-        tau = self.T - self.timescale*self.env.now
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         # Normalize delta x to 1 unit
         new_y_reserves = self.TradingFunction() + self.K * norm.cdf(norm.ppf(1 - (self.scaleDown(self.x) + self.gamma*self.scaleDown(deltax))) - self.vol * np.sqrt(tau))
         deltaynorm = self.scaleDown(self.y) - new_y_reserves
@@ -226,7 +226,7 @@ class RMM01(CFMM):
         '''
         assert nonnegative(deltax)
         initial_x, initial_y = self.x, self.y
-        tau = self.T - self.timescale*self.env.now
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         # Normalize delta x to 1 unit
         new_y_reserves = self.TradingFunction() + self.K * norm.cdf(norm.ppf(1 - (self.scaleDown(self.x) + self.gamma*self.scaleDown(deltax))) - self.vol * np.sqrt(tau))
         deltaynorm = self.scaleDown(self.y) - new_y_reserves
@@ -248,7 +248,7 @@ class RMM01(CFMM):
         effective_price - Price the swap was recieved at denominated in numeraire of choice
         '''
         assert nonnegative(deltay)
-        tau = self.T - self.timescale*self.env.now
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         new_x_reserves = 1 - norm.cdf(norm.ppf(((self.scaleDown(self.y) + self.gamma*self.scaleDown(deltay)) - self.TradingFunction()) / self.K) + self.vol * np.sqrt(tau))
         deltaxnorm = self.scaleDown(self.x) - new_x_reserves
         deltax = self.scaleUp(deltaxnorm)
@@ -272,7 +272,7 @@ class RMM01(CFMM):
         '''
         assert nonnegative(deltay)
         initial_x, initial_y = self.x, self.y
-        tau = self.T - self.timescale*self.env.now
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         new_x_reserves = 1 - norm.cdf(norm.ppf(((self.scaleDown(self.y) + self.gamma*self.scaleDown(deltay)) - self.TradingFunction()) / self.K) + self.vol * np.sqrt(tau))
         deltaxnorm = self.scaleDown(self.x) - new_x_reserves
         deltax = self.scaleUp(deltaxnorm)
@@ -292,7 +292,7 @@ class RMM01(CFMM):
         returns:
         Spot price after trade denominated in numeraire of choice
         '''
-        tau = self.T - self.timescale*self.env.now
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         def g(delta):
             return self.K*np.exp(norm.ppf(1 - self.scaleDown(self.x) - delta)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
         if numeraire == 'y':
@@ -307,7 +307,7 @@ class RMM01(CFMM):
         returns:
         Spot price after trade denominated in numeraire of choice
         '''
-        tau = self.T - self.timescale*self.env.now
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         def g(delta):
             return (1/self.K)*np.exp(-norm.ppf((self.scaleDown(self.y) + delta - self.TradingFunction())/self.K)*self.vol*np.sqrt(tau))*np.exp(-0.5*tau*self.vol**2)
         if numeraire == 'x':
@@ -324,7 +324,7 @@ class RMM01(CFMM):
         in order to align the price of the pool with the reference market.
         '''
         assert m > self.getMarginalPriceAfterYTrade(0, 'y')
-        tau = self.T - self.env.now*self.timescale
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         def inverseG(ref_price):
             return self.TradingFunction() - self.scaleDown(self.y) + self.K*norm.cdf(-np.log(self.K*ref_price)/(self.vol*np.sqrt(tau)) - 0.5*self.vol*np.sqrt(tau))
         m = 1/m
@@ -337,7 +337,7 @@ class RMM01(CFMM):
         in order to align the price of the pool with the reference market.
         '''
         assert m < self.getMarginalPriceAfterXTrade(0, 'y')
-        tau = self.T - self.env.now*self.timescale
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         def inverseG(ref_price):
             return self.scaleDown(self.x) - 1 + norm.cdf(-np.log(ref_price/self.K)/(self.vol*np.sqrt(tau)) - 0.5*self.vol*np.sqrt(tau))
         return self.scaleUp((1/self.gamma)*inverseG((1/self.gamma)*m))
