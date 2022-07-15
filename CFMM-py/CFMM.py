@@ -173,7 +173,7 @@ class RMM01(CFMM):
         # self.ynorm = y/self.n
         # Update bounds if we're testing a pool starting with a non zero invariant:
         tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
-        self.xbounds[1] = 1 - norm.cdf(norm.ppf((-self.TradingFunction())/self.K) + self.vol*np.sqrt(tau))
+        self.xbounds[1] = (1 - norm.cdf(norm.ppf((-self.TradingFunction())/self.K) + self.vol*np.sqrt(tau)))*self.n
         self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
 
     def TradingFunction(self):
