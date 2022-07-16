@@ -219,7 +219,7 @@ class RMM01(CFMM):
             effective_price = deltax/deltay
         self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
         # Max x is given by zero of x(y) function
-        self.xbounds[1] = 1 - norm.cdf(norm.ppf((-self.TradingFunction())/self.K) + self.vol*np.sqrt(tau))
+        self.xbounds[1] = (1 - norm.cdf(norm.ppf((-self.TradingFunction())/self.K) + self.vol*np.sqrt(tau)))*self.n
         assert nonnegative(self.x) and nonnegative(self.y)
         return deltay, effective_price
 
@@ -270,7 +270,7 @@ class RMM01(CFMM):
         if numeraire == 'x':
             effective_price = deltax/deltay 
         self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
-        self.xbounds[1] = 1 - norm.cdf(norm.ppf((-self.TradingFunction())/self.K) + self.vol*np.sqrt(tau))
+        self.xbounds[1] = (1 - norm.cdf(norm.ppf((-self.TradingFunction())/self.K) + self.vol*np.sqrt(tau)))*self.n
         assert nonnegative(self.x) and nonnegative(self.y)
         return deltax, effective_price
 
@@ -360,12 +360,13 @@ class RMM01(CFMM):
         each asset that the liquidity provider should subtract from their wallet.
         n_shares_to_add can be fractional.
         '''
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         deltax = (self.x/self.n)*n_shares_to_add
         deltay = (self.y/self.n)*n_shares_to_add
         self.x += deltax 
         self.y += deltay 
         self.n += n_shares_to_add
-        self.xbounds[1] = 1*self.n
+        self.xbounds[1] = (1 - norm.cdf(norm.ppf((-self.TradingFunction())/self.K) + self.vol*np.sqrt(tau)))*self.n
         self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
         return deltax, deltay
     
@@ -376,11 +377,12 @@ class RMM01(CFMM):
         actor initiating the withdrawal.
         '''
         assert n_shares_to_remove < self.n
+        tau = self.T - (self.env.now - self.creation_epoch)*self.timescale
         deltax = (n_shares_to_remove/self.n)*self.x
         deltay = (n_shares_to_remove/self.n)*self.y
         self.x -= deltax 
         self.y -= deltay 
         self.n -= n_shares_to_remove
-        self.xbounds[1] = 1*self.n
+        self.xbounds[1] = (1 - norm.cdf(norm.ppf((-self.TradingFunction())/self.K) + self.vol*np.sqrt(tau)))*self.n
         self.ybounds[1] = self.K*self.n + self.TradingFunction()*self.n
         return deltax, deltay
