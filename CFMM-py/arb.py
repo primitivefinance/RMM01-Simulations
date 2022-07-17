@@ -90,6 +90,21 @@ class Two_CFMM_Arbitrager:
         # If we get more y out of RMM than we put in Uniswap
         if deltay_RMM > y:
 
+            lhs_init_zero = self.M1.getMarginalPriceAfterYTrade(ZERO, 'y')
+            deltax = self.M1.virtualSwapYforX(ZERO, 'y')[0]
+            rhs_init_zero = self.RMM.getMarginalPriceAfterXTrade(deltax, 'y')
+            term_zero = lhs_init_zero - rhs_init_zero
+            lhs_init_deltaymax = self.M1.getMarginalPriceAfterYTrade(deltaymax, 'y')
+            deltax = self.M1.virtualSwapYforX(deltaymax, 'y')[0]
+            rhs_init_deltaymax = self.RMM.getMarginalPriceAfterXTrade(deltax, 'y')
+            term_deltay_max = lhs_init_deltaymax - rhs_init_deltaymax
+
+            # If there is no change of sign between a zero swap and the max amount to swap,
+            # the pool cannot be reasonably arbitraged.
+
+            if  term_zero*term_deltay_max > 0:
+                return 0
+
             def findZero(y):
                 lhs = self.M1.getMarginalPriceAfterYTrade(y, 'y')
                 deltax = self.M1.virtualSwapYforX(y, 'y')[0]
