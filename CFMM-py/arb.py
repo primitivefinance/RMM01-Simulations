@@ -50,6 +50,19 @@ class Two_CFMM_Arbitrager:
 
         # If we get more x out of RMM than we put in Uniswap
         if deltax_RMM > x:
+
+            lhs_init_zero = self.M1.getMarginalPriceAfterXTrade(ZERO, 'y')
+            deltay = self.M1.virtualSwapXforY(ZERO, 'y')[0]
+            rhs_init_zero = self.RMM.getMarginalPriceAfterYTrade(deltay, 'y')
+            term_zero = lhs_init_zero - rhs_init_zero
+            lhs_init_deltaymax = self.M1.getMarginalPriceAfterXTrade(deltaxmax, 'y')
+            deltay = self.M1.virtualSwapXforY(deltaymax, 'y')[0]
+            rhs_init_deltaymax = self.RMM.getMarginalPriceAfterYTrade(deltay, 'y')
+            term_deltay_max = lhs_init_deltaymax - rhs_init_deltaymax
+
+            if term_zero*term_deltay_max > 0:
+                return 0
+
             def findZero(x):
                 lhs = self.M1.getMarginalPriceAfterXTrade(x, 'y')
                 deltay = self.M1.virtualSwapXforY(x, 'y')[0]
