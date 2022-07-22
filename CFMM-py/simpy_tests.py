@@ -147,7 +147,7 @@ if True:
                     # print(f"Initial Uniswap pool price = {self.UniPool.getMarginalPriceAfterXTrade(0, 'y')}")
                     # print(f"GBM price at {self.env.now} :", p)
                     self.current_price = p
-                    tau = self.RMMPool.T - dt*self.env.now
+                    tau = self.RMMPool.T - (self.env.now - self.RMMPool.creation_epoch)*self.RMMPool.timescale
                     print("\n")
                     print(f"SIMULATION STEP {self.env.now}")
                     print("\n")
