@@ -244,7 +244,7 @@ if True:
                         y_out = self.UniPool.virtualSwapXforY(deltax, 'y')[0]
                         # We want to migrate the leftover y reserves too
                         return (x_reserves-deltax)/(y_out + y_reserves) - required_x_norm/required_y_norm
-                    deltax_required = brentq(ratio, 1e-8, x_reserves-1e-8)
+                    deltax_required = brentq(ratio, 1e-7, x_reserves-1e-7)
                     # print(f"Delta x required = {deltax_required}")
                     y_out = self.UniPool.swapXforY(deltax_required, 'y')[0]
                     # The Uniswap pool gets arbed back to stay at the current price
@@ -265,7 +265,7 @@ if True:
                     def ratio(deltay):
                         x_out = self.UniPool.virtualSwapYforX(deltay, 'y')[0]
                         return (y_reserves-deltay)/(x_out + x_reserves) - required_y_norm/required_x_norm
-                    deltay_required = brentq(ratio, 1e-8, x_reserves-1e-8)
+                    deltay_required = brentq(ratio, 1e-7, y_reserves-1e-7)
                     x_out = self.UniPool.swapYforX(deltay_required, 'y')[0]
                     n_shares = ((x_out + x_reserves)*self.current_price+ y_out)/value_norm
                     self.RMMPool.__init__((x_out + x_reserves)/n_shares, (y_reserves  - deltay_required)/n_shares, fee, strike, volatility, duration, self.env, timescale, n_shares, self.env.now)
