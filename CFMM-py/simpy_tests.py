@@ -267,7 +267,7 @@ if True:
                         return (y_reserves-deltay)/(x_out + x_reserves) - required_y_norm/required_x_norm
                     deltay_required = brentq(ratio, 1e-7, y_reserves-1e-7)
                     x_out = self.UniPool.swapYforX(deltay_required, 'y')[0]
-                    n_shares = ((x_out + x_reserves)*self.current_price+ y_out)/value_norm
+                    n_shares = ((x_out + x_reserves)*self.current_price+ (y_reserves - deltay_required))/value_norm
                     self.RMMPool.__init__((x_out + x_reserves)/n_shares, (y_reserves  - deltay_required)/n_shares, fee, strike, volatility, duration, self.env, timescale, n_shares, self.env.now)
 
                 print(f"New pool reserves: x = {self.RMMPool.x}, y = {self.RMMPool.y}")
