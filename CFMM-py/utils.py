@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import norm
 
 def nonnegative(x):
     if isinstance(x, np.ndarray):
@@ -37,3 +38,10 @@ def gbm(s0, dt, time_horizon, sigma, mu):
         yield si
         t = i*dt
         i += 1
+
+def getInitialYGivenInitialXRMM(x, strike, volatility, tau):
+    return strike*norm.cdf(norm.ppf(1-x)-volatility*np.sqrt(tau))
+
+def getInitialXGivenReferencePriceRMM(ref_price, strike, volatility, tau):
+    return 1 - norm.cdf((1/(volatility*np.sqrt(tau)))*(np.log(ref_price/strike) + 0.5*tau*volatility**2))
+
